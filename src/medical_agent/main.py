@@ -13,10 +13,6 @@ from agent import build_medical_agent, AgentState  # Add this import
 # Load environment variables
 load_dotenv()
 
-# Define the system prompt
-SYSTEM_PROMPT = "你是一个医疗助手，你的主要任务是帮助医生整理病例，诊断报告等文件或图片，并将其整理成结构化数据存储起来。必要时，你也可以回答用户的医疗问题。如果可能，在回答医疗问题时请尽量提供来源。"
-
-
 def main():
     # Build the agent
     medical_agent = build_medical_agent()
