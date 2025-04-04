@@ -90,7 +90,7 @@ def create_input_node(state: AgentState):
     """Create a node for handling user input and generating responses."""
     
     # Default values
-    image_path = "/Users/czy/Desktop/sidegig/Medical_Agent/data/input_1.jpg"
+    image_path = "/Users/czy/Desktop/sidegig/Medical_Agent/data/input_2.jpg"
     question = "请分析这张医疗图像并提供诊断建议。"
     
     # Get user input or use defaults
@@ -257,32 +257,82 @@ def fill_form_node(state: AgentState):
     
     # SECTION END --------
 
-    SECTION BEGIN: 填充表格主体部分
+    # SECTION BEGIN: 填充表格主体部分 - 并行处理版本
+    import concurrent.futures
+    from functools import partial
+    
+    def process_location(location, ocr, qwen, row_index, system_prompt):
+        """处理单个冠脉节段的函数，用于并行执行"""
+        if location not in row_index:
+            return None, None, None
+            
+        ridx = row_index[location]
+        input_prompt = FILLIN_PROMPT_5.format(
+            ocr_text=ocr,
+            location=location,
+        )
+        
+        # 实现重试机制，使用指数退避策略
+        max_retries = 5
+        retry_delay = 1  # 初始延迟1秒
+        attempt = 0
+        
+        while attempt < max_retries:
+            try:
+                completion = qwen.chat.completions.create(
+                    model="qwen-max-0125",
+                    messages=[
+                        {'role':'system', 'content': system_prompt},
+                        {'role': 'user', 'content': input_prompt}]
+                )
+                text = completion.choices[0].message.content
+                print(f"result for {location} is {text}")
+                
+                tmp = safe_json_load(text)
+                return location, ridx, tmp
+            except Exception as e:
+                attempt += 1
+                error_message = str(e)
+                
+                # 检查是否是速率限制错误 (429)
+                if "429" in error_message or "limit_requests" in error_message:
+                    if attempt < max_retries:
+                        import time
+                        sleep_time = retry_delay * (2 ** (attempt - 1))  # 指数退避
+                        print(f"Rate limit hit for {location}, retrying in {sleep_time} seconds... (Attempt {attempt}/{max_retries})")
+                        time.sleep(sleep_time)
+                        continue
+                
+                print(f"Error processing {location} (Attempt {attempt}/{max_retries}): {e}")
+                if attempt >= max_retries:
+                    print(f"Max retries reached for {location}, giving up.")
+                    return location, ridx, None
+    
+    # 获取所有需要处理的位置
+    locations_to_process = []
     for i in range(len(formatted_table)):
         location = formatted_table.iloc[i]["冠脉节段"]
         if location in row_index:
-            ridx = row_index[location]
-            input_prompt = FILLIN_PROMPT_5.format(
-                ocr_text=ocr,
-                location=location,
-            )
-            completion = qwen.chat.completions.create(
-                model="qwen-max-0125",
-                messages=[
-                    {'role':'system', 'content': SYSTEM_PROMPT},
-                    {'role': 'user', 'content': input_prompt}]
-            )
-            text = completion.choices[0].message.content
-            print(f"result for {location} is {text}")
-
-            tmp = safe_json_load(text)
+            locations_to_process.append(location)
+    
+    # 创建部分应用的函数，固定一些参数
+    process_func = partial(process_location, ocr=ocr, qwen=qwen, row_index=row_index, system_prompt=SYSTEM_PROMPT)
+    
+    # 使用ThreadPoolExecutor并行处理所有位置
+    # 使用线程池而不是进程池，因为OpenAI客户端对象不能被序列化以在进程间传递
+    # 减少工作线程数量，避免触发API速率限制
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(process_func, locations_to_process))
+    
+    # 处理结果并更新表格
+    for location, ridx, tmp in results:
+        if tmp is not None:
             for col in list(formatted_table.columns)[1:]:
                 value = tmp.get(col, "")
                 if value == "NO":
                     value = ""
                 formatted_table.at[ridx, col] = value
-            save_df_to_cache(formatted_table, "qwen_cache")
-
+    
     save_df_to_cache(formatted_table, "qwen_cache")
 
     # SECTION END --------
