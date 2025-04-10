@@ -7,7 +7,7 @@ import pandas as pd
 # ---------------------------------------
 segments = [
     "左主干近段 (pLM)", "左主干中段 (mLM)", "左主干远段 (dLM)", 
-    "右前降支近段 (pLAD)", "右前降支中段 (mLAD)", "右前降支远段 (dLAD)", 
+    "左前降支近段 (pLAD)", "左前降支中段 (mLAD)", "左前降支远段 (dLAD)", 
     "左回旋支近段 (pLCX)", "左回旋支中段 (mLCX)", "左回旋支远段 (dLCX)",
     "右冠近段 (pRCA)", "右冠中段 (mRCA)", "右冠远段 (dRCA)",
     "第一对角支 (D1)", "第二对角支 (D2)", "中间支 (RI)",
@@ -38,7 +38,7 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
     """
     Creates a popup window with:
       - Top fields (冠状动脉钙化总积分, LM, LAD, LCX, RCA as Entry;
-        冠状动脉起源、走形及终止, 冠脉优势型 as Combobox)
+        冠状动脉起源、走形及终止, 冠脉优势型 as Combobox, 异常描述 as Entry)
       - Main table of segments vs. columns (some are dropdown, some are blank Entry)
     
     Args:
@@ -48,6 +48,7 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
         "冠状动脉钙化总积分", "LM", "LAD", "LCX", "RCA" (text)
         "冠状动脉起源、走形及终止" (dropdown: ["正常", "异常"])
         "冠脉优势型" (dropdown: ["右冠优势型", "左冠优势型", "均衡性"])
+        "异常描述" (text)
     """
     root = tk.Tk()
     root.title("冠脉结构化填写")
@@ -101,6 +102,12 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
     combo_dominance = ttk.Combobox(top_frame, values=["NONE", "右冠优势型", "左冠优势型", "均衡性"], width=10, state="readonly")
     combo_dominance.grid(row=1, column=3)
     combo_dominance.set(top_data.get("冠脉优势型", "NONE"))
+
+    # Row 2: 异常描述 (text field, spans entire row)
+    ttk.Label(top_frame, text="异常描述:").grid(row=2, column=0, sticky="e", padx=5)
+    entry_abnormal = ttk.Entry(top_frame, width=60)  # 宽度设置为60以占据整行
+    entry_abnormal.grid(row=2, column=1, columnspan=9, sticky="w", padx=5)
+    entry_abnormal.insert(0, top_data.get("异常描述", "NONE"))
 
     # =========================
     # Main Table (segments)
@@ -157,7 +164,8 @@ def test_gui_with_dummy_df():
         "LCX": "NONE",
         "RCA": "NONE",
         "冠状动脉起源、走形及终止": "NONE",
-        "冠脉优势型": "NONE"
+        "冠脉优势型": "NONE",
+        "异常描述": "NONE"
     }
 
     # 3) Show the popup
