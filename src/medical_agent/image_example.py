@@ -35,12 +35,12 @@ def main():
     )
     
     # Build the agent
-    medical_agent = build_medical_agent(llm)
+    medical_agent = build_medical_agent()
     
     # Get image path from user
     print("Medical Image Analysis Example")
     print("-" * 50)
-    image_path = "/Users/czy/Desktop/sidegig/Medical_Agent/data/input_1.jpg"
+    image_path = "/Users/wgl/Desktop/Medical_Agent/data/test_jpg/pic1.jpg"
     
     # Encode the image
     image_file = read_image(image_path)
