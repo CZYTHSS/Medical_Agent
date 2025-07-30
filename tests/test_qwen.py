@@ -11,7 +11,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
     
 def test_ocr_model():
-    image_path = '/Users/czy/Desktop/sidegig/Medical_Agent/data/input_1.jpg'
+    image_path = '/Users/wgl/Desktop/Medical_Agent/data/input_1.jpg'
     base64_image = encode_image(image_path)
     client = OpenAI(
         # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
@@ -52,7 +52,7 @@ def test_omni_model():
     )
 
 
-    base64_image = encode_image('/Users/czy/Desktop/sidegig/Medical_Agent/data/input_1.jpg')
+    base64_image = encode_image('/Users/wgl/Desktop/Medical_Agent/data/input_1.jpg')
 
     completion = client.chat.completions.create(
         model="qwen-omni-turbo",
@@ -88,7 +88,7 @@ def test_omni_model():
 
 def test_qwenvl_model():
     # 将xxxx/test.png替换为你本地图像的绝对路径
-    base64_image = encode_image('/Users/czy/Desktop/sidegig/Medical_Agent/data/input_1.jpg')
+    base64_image = encode_image('/Users/wgl/Desktop/Medical_Agent/data/input_1.jpg')
     client = OpenAI(
         # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
         api_key=os.getenv('DASHSCOPE_API_KEY'),

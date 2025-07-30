@@ -13,16 +13,27 @@ segments = [
     "第一对角支 (D1)", "第二对角支 (D2)", "中间支 (RI)",
     "第一钝缘支 (OM1)", "第二钝缘支 (OM2)", 
     "左室侧后降支 (L-PDA)", "右室侧降支 (L-PDA)",
-    "左室侧后支 (L-PLB)", "右室侧后支 (R-PLB)"
+    "左室侧后支 (L-PLB)", "右室侧后支 (R-PLB)", "右心室收缩压(RVSP)", "肺动脉收缩压(PASP)",
+    "三尖瓣环收缩期位移(TAPSE)", "右心室游离壁基底段收缩期峰值速度(RV TDI s')", "右心室射血分数(RV EF)",
+    "右心室面积变化分数(RV FAC)", "右心室流出道血速度度积分(RVOT VTI)", "右心室每博量(RV SV)",
+    "右心室每博量指数(RV SVi)", "右心室流出道峰值速度(RVOT peak vel)", "右心室流出道峰值压差(RVOT peak PG)",
+    "右心室流出道平均压差(RVOT mean PG)", "右心室流出道加速时间(RVOT AccT)", "右心室游离壁纵向应变(RVFWS)",
+    "右心室整体纵向应变(RVGLS)", "二尖瓣反流峰值速度(MR peak Vel)", "二尖瓣反流血速度度积分(MR VTI)",
+    "二尖瓣反流峰值压差(MR peak PG)", "二尖瓣反流dp/dt(MR dp/dt)", "二尖瓣反流血流汇聚区直径(MR VC)",
+    "二尖瓣反流血流汇聚区面积(3D MR VCA)", "二尖瓣反流PISA半径(MR PISA r)", "二尖瓣反流PISA混叠速度(MR PISA aliasing vel)",
+    "二尖瓣反流PISA有效瓣口面积(MR PISA EROA)", "二尖瓣反流PISA有效瓣口面积(3D MR EROA)", 
+    "三尖瓣E峰速度(TV E)", "三尖瓣A峰速度(TV A)", "三尖瓣E/A比值(TV E/A)", "三尖瓣环脉冲多普勒速度(NA)",
+    "三尖瓣环侧壁e'速度(TV e')", "三尖瓣E/e'比值(TV E/e')", "主肺动脉内径(mPA)", 
+    "右肺动脉内径(rPA)", "左肺动脉内径(lPA)"
 ]
 
 # -----------------------------------------------------
 # 2) Table columns (after "冠脉节段") and dropdown setup
 # -----------------------------------------------------
-all_columns = ["斑块种类", "类型", "症状", "大小(mm)", "狭窄程度", "闭塞"]
+all_columns = ["名称", "英文", "斑块种类", "类型", "症状", "数值", "单位", "狭窄程度", "闭塞"]
 
 dropdown_columns = ["斑块种类", "狭窄程度", "闭塞"]  # use Combobox
-blank_columns = ["类型", "症状", "大小(mm)"]        # use Entry
+blank_columns = ["类型", "症状", "数值"]        # use Entry
 
 dropdown_options = {
     "斑块种类": ["NONE", "软斑块（非钙化性斑块）", "混合密度斑块", "硬斑块（钙化性斑块）"],
@@ -110,24 +121,38 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
     entry_abnormal.insert(0, top_data.get("异常描述", "NONE"))
 
     # =========================
-    # Main Table (segments)
+    # Main Table (segments) with Scrollbars
     # =========================
-    table_frame = ttk.Frame(root)
-    table_frame.pack(padx=10, pady=5)
+    # Create a main frame for the table
+    main_table_frame = ttk.Frame(root)
+    main_table_frame.pack(padx=10, pady=5, fill="both", expand=True)
 
-    # Header row
-    ttk.Label(table_frame, text="冠脉节段", borderwidth=1, relief="solid", width=20)\
-        .grid(row=0, column=0)
-    for j, col in enumerate(all_columns):
+    # Create a canvas with scrollbars
+    canvas = tk.Canvas(main_table_frame, width=800, height=400)
+    v_scrollbar = ttk.Scrollbar(main_table_frame, orient="vertical", command=canvas.yview)
+    h_scrollbar = ttk.Scrollbar(main_table_frame, orient="horizontal", command=canvas.xview)
+    
+    # Create a frame inside the canvas for the actual table
+    table_frame = ttk.Frame(canvas)
+    
+    # Configure scrolling
+    canvas.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+    canvas.create_window((0, 0), window=table_frame, anchor="nw")
+    
+    # Pack scrollbars and canvas
+    v_scrollbar.pack(side="right", fill="y")
+    h_scrollbar.pack(side="bottom", fill="x")
+    canvas.pack(side="left", fill="both", expand=True)
+
+    # Header row - 包含"名称"和其他8列，共9列
+    all_df_columns = ["名称", "英文", "斑块种类", "类型", "症状", "数值", "单位", "狭窄程度", "闭塞"]
+    for j, col in enumerate(all_df_columns):
         ttk.Label(table_frame, text=col, borderwidth=1, relief="solid", width=15)\
-            .grid(row=0, column=j+1)
+            .grid(row=0, column=j, sticky="nsew")
 
-    # Data rows
-    for i, seg in enumerate(segments):
-        ttk.Label(table_frame, text=seg, borderwidth=1, relief="solid", width=20)\
-            .grid(row=i+1, column=0)
-
-        for j, col in enumerate(all_columns):
+    # Data rows (55 rows total) - 直接使用DataFrame的所有列
+    for i in range(len(df)):
+        for j, col in enumerate(all_df_columns):
             raw_val = df.at[i, col] if (col in df.columns and i in df.index) else None
             value = str(raw_val) if pd.notna(raw_val) else "NONE"
 
@@ -135,13 +160,27 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
                 # Combobox with improved visibility
                 widget = ttk.Combobox(table_frame, width=13, state="readonly")
                 widget['values'] = dropdown_options[col]
-                widget.grid(row=i+1, column=j+1)
+                widget.grid(row=i+1, column=j, sticky="nsew")
                 widget.set(value)
             else:
                 # Blank text field
                 widget = ttk.Entry(table_frame, width=15)
-                widget.grid(row=i+1, column=j+1)
+                widget.grid(row=i+1, column=j, sticky="nsew")
                 widget.insert(0, value)
+    
+    # Update canvas scroll region after adding all widgets
+    def configure_scroll_region(event=None):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+    
+    table_frame.bind("<Configure>", configure_scroll_region)
+    
+    # Bind mouse wheel to canvas for scrolling
+    def on_mousewheel(event):
+        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    
+    canvas.bind("<MouseWheel>", on_mousewheel)  # Windows
+    canvas.bind("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux
+    canvas.bind("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))   # Linux
 
     root.mainloop()
 
@@ -149,12 +188,9 @@ def show_popup_with_df(df: pd.DataFrame, top_data: dict):
 # Test with dummy data (top fields + main table "NONE")
 # -----------------------------------------------------
 def test_gui_with_dummy_df():
-    # 1) Build a dummy DataFrame for the table
-    df_data = {"冠脉节段": segments}
-    for col in all_columns:
-        df_data[col] = ["NONE"] * len(segments)
-    df = pd.DataFrame(df_data)
-    df.reset_index(drop=True, inplace=True)
+    # 1) Use the real formatted DataFrame instead of dummy data
+    from table_format import create_formatted_df
+    df = create_formatted_df()
 
     # 2) Build a dict for the top fields
     top_data = {

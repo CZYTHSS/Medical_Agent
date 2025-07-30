@@ -7,7 +7,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # The path to your image
-image_path = '/Users/czy/Desktop/sidegig/Medical_Agent/data/input_2.jpg'
+image_path = '/Users/wgl/Desktop/Medical_Agent/data/input_2.jpg'
 
 # Read and encode the image in base64
 def encode_image_to_base64(image_path):
