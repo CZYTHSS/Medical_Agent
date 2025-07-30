@@ -5,8 +5,9 @@ import time
 from pathlib import Path
 
 # Define the base paths
-CACHE_DIR = "/Users/wgl/Desktop/Medical_Agent/src/medical_agent/cache"
-OCR_RESULT_DIR = "/Users/wgl/Desktop/Medical_Agent/exports/OCR_result"
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+CACHE_DIR = os.path.join(ROOT_DIR, 'cache')
+OCR_RESULT_DIR = os.path.join(ROOT_DIR, "../../exports/OCR_result")
 
 def save_df_to_cache(df: pd.DataFrame, filename: str):
     """

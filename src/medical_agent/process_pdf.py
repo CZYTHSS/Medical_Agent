@@ -10,6 +10,7 @@ from agent import build_medical_agent, AgentState
 from utils import save_df_to_cache, load_df_from_cache, save_ocr_result, start_timer, end_timer_and_print
 from gui import show_popup_with_df
 import json
+from medical_agent.utils import ROOT_DIR
 
 # Load environment variables
 load_dotenv()
@@ -247,7 +248,7 @@ def main():
     print("-" * 50)
     
     # 默认PDF路径
-    default_pdf_path = "/Users/wgl/Desktop/Medical_Agent/data/智能分析用检查报告PDF文件(只有PDF文件)/报告例子/彩色超声报告单/20220824235959000_0000000001_YS100001_001.pdf"
+    default_pdf_path = os.path.join(ROOT_DIR, "../../data/智能分析用检查报告PDF文件(只有PDF文件)/报告例子/彩色超声报告单/20220824235959000_0000000001_YS100001_001.pdf")
     
     # 检查是否在自动模式（DEBUG环境变量）
     if os.environ.get('AUTO_RUN', '0') == '1':

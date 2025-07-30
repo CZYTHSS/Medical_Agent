@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from agent import build_medical_agent, AgentState
 from openai import OpenAI  # Update import
+from medical_agent.utils import ROOT_DIR
 
 def main():
     # Load environment variables
@@ -40,7 +41,7 @@ def main():
     # Get image path from user
     print("Medical Image Analysis Example")
     print("-" * 50)
-    image_path = "/Users/wgl/Desktop/Medical_Agent/data/test_jpg/pic1.jpg"
+    image_path = os.path.join(ROOT_DIR, "../../data/test_jpg/pic1.jpg")
     
     # Encode the image
     image_file = read_image(image_path)

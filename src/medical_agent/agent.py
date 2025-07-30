@@ -15,6 +15,7 @@ from medical_agent.prompts import FILL_IN_FORM_PROMPT, FILLIN_PROMPT_2, FILLIN_P
 import json
 import pandas as pd
 from medical_agent.gui import show_popup_with_df
+from medical_agent.utils import ROOT_DIR
 
 # Define message types
 class Message(TypedDict):
@@ -339,7 +340,7 @@ def create_input_node(state: AgentState):
     """Create a node for handling user input and generating responses."""
     
     # Default values
-    default_image_path = "/Users/wgl/Desktop/Medical_Agent/data/input_2.jpg"
+    default_image_path = os.path.join(ROOT_DIR, "../../data/input_2.jpg")
     default_question = "请分析这张医疗图像并提供诊断建议。"
     
     image_path = default_image_path
